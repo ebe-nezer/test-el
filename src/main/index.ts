@@ -34,10 +34,12 @@ function createWindow(): void {
 
   // Auto-updater events
   autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for updates...')
     mainWindow.webContents.send('update-check', 'Checking for updates...')
   })
 
   autoUpdater.on('update-available', () => {
+    console.log('Update available')
     dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update Available',
@@ -46,6 +48,7 @@ function createWindow(): void {
   })
 
   autoUpdater.on('update-not-available', () => {
+    console.log('No update available')
     dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'No Update Available',
@@ -54,6 +57,7 @@ function createWindow(): void {
   })
 
   autoUpdater.on('update-downloaded', () => {
+    console.log('Update downloaded')
     const result = dialog.showMessageBoxSync(mainWindow, {
       type: 'question',
       buttons: ['Install and Restart', 'Later'],
@@ -67,13 +71,12 @@ function createWindow(): void {
     }
   })
 
-  // Check for updates and notify
-  autoUpdater.setFeedURL({
-    provider: 'github',
-    owner: 'ebe-nezer',
-    repo: 'test-el'
+  autoUpdater.on('error', (error) => {
+    console.error('Update error:', error)
+    dialog.showErrorBox('Update Error', `Error: ${error.message || error}`)
   })
 
+  console.log('App version:', app.getVersion())
   autoUpdater.checkForUpdatesAndNotify()
 }
 
