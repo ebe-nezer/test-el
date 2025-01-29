@@ -1,96 +1,81 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { autoUpdater } from 'electron-updater'
-import icon from '../../resources/icon.png?asset'
+import { app, BrowserWindow, autoUpdater, dialog } from 'electron'
+import * as path from 'path'
+import * as url from 'url'
+
+const server = 'https://github.com/ebe-nezer/test-el/releases/latest' // Your GitHub releases URL
+const feedURL = `${server}`
+
+let win: BrowserWindow | null = null
 
 function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+  win = new BrowserWindow({
+    width: 800,
+    height: 600,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      nodeIntegration: true
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // Load the remote URL for development or the local HTML file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
-
-  // Auto-updater event listeners
-  autoUpdater.on('checking-for-update', () => {
-    mainWindow.webContents.send('update-check', 'Checking for updates...')
-  })
-
-  autoUpdater.on('update-available', () => {
-    dialog.showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Available',
-      message: 'A new version is available. Downloading now...'
+  // Load your index.html or app page
+  win.loadURL(
+    url.format({
+      pathname: path.join(__dirname, 'index.html'),
+      protocol: 'file:',
+      slashes: true
     })
-  })
+  )
 
-  autoUpdater.on('update-not-available', () => {
-    dialog.showMessageBox(mainWindow, {
+  // Open DevTools for debugging (optional)
+  win.webContents.openDevTools()
+}
+
+// Electron Ready event
+app.whenReady().then(() => {
+  createWindow()
+
+  // Check for updates when the app is ready
+  autoUpdater.setFeedURL({
+    url: feedURL
+  })
+  autoUpdater.checkForUpdates()
+
+  // Listen for update events
+  autoUpdater.on('update-available', () => {
+    dialog.showMessageBox(win!, {
       type: 'info',
-      title: 'No Update Available',
-      message: 'Your application is up-to-date.'
+      buttons: ['OK'],
+      title: 'Update Available',
+      message: 'A new version is available. The app will automatically update.'
     })
   })
 
   autoUpdater.on('update-downloaded', () => {
-    const result = dialog.showMessageBoxSync(mainWindow, {
-      type: 'question',
-      buttons: ['Install and Restart', 'Later'],
-      defaultId: 0,
-      title: 'Update Ready',
-      message: 'An update has been downloaded. Would you like to install it now?'
-    })
-
-    if (result === 0) {
-      autoUpdater.quitAndInstall()
-    }
+    dialog
+      .showMessageBox(win!, {
+        type: 'info',
+        buttons: ['Restart'],
+        title: 'Update Ready',
+        message: 'The update has been downloaded. Restart the app to apply the changes.'
+      })
+      .then(() => {
+        autoUpdater.quitAndInstall() // Restart and install the update
+      })
   })
 
-  // Check for updates when the window is created
-  autoUpdater.checkForUpdatesAndNotify()
-}
-
-app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.electron')
-
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
-
-  ipcMain.on('ping', () => console.log('pong'))
-
-  createWindow()
-
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  // Handle autoUpdater errors
+  autoUpdater.on('error', (error) => {
+    console.error('Error during auto-update:', error)
   })
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+
+app.on('activate', () => {
+  if (win === null) {
+    createWindow()
   }
 })
