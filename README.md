@@ -1,34 +1,57 @@
-# test-el
+## Code Commit
 
-An Electron application with React and TypeScript
-
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-## Project Setup
-
-### Install
-
-```bash
-$ npm install
+```powershell
+git add -A
+git commit -m "{COMMIT_MESSAGE}"
+git push origin master
 ```
 
-### Development
+##
 
-```bash
-$ npm run dev
+Build Steps
+
+#### Follow the below step for application release
+
+### Set Npm Version to track the package
+
+```powershell
+npm version {minor | patch | major}
+```
+
+### Set Tag ( Optional )
+
+```powershell
+git tag {NPM_VERSION} #version of the output of npm version here
+```
+
+### Push the Tag
+
+```powershell
+git push origin {TAG_VERSION}
 ```
 
 ### Build
 
-```bash
-# For windows
-$ npm run build:win
+For Windows
 
-# For macOS
-$ npm run build:mac
+```powershell
+npm run build:win
+```
 
-# For Linux
-$ npm run build:linux
+For Mac
+
+```powershell
+npm run build:mac
+```
+
+For Linux
+
+```powershell
+npm run build:linux
+```
+
+### Create Release using GH
+
+```powershell
+gh release create v1.4.0 'FILE_PATH' --title "TITLE" --notes "GIVE APPROPRIATE VERSION"
 ```
