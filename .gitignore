@@ -1,0 +1,30 @@
+# Ignore the release folder and its contents
+release/
+*.exe
+*.dmg
+*.zip
+*.tar.gz
+*.tar.bz2
+
+# Node.js dependencies
+node_modules/
+
+# Build output (e.g., for React, Webpack, etc.)
+build/
+dist/
+out/
+release/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# IDE/editor-specific files (e.g., VS Code, JetBrains)
+.vscode/
+.idea/
+
+# Environment files
+.env
